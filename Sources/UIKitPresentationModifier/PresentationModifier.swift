@@ -23,7 +23,6 @@
 //
 
 import SwiftUI
-import Combine
 
 public extension View {
     /// Use this modifier to present a `UIKit` controller from `SwiftUI`.
@@ -85,9 +84,9 @@ struct UIKitPresentationModifier<Presented>: ViewModifier where Presented: View 
 
     func body(content: Content) -> some View {
         content
-            .background(AnchorView { proxy in
+            .background(BridgeView { proxy in
                 Color.clear
-                    .onReceive(Just(isPresented)) { isPresented in
+                    .onChange(of: isPresented) { isPresented in
                         handlePresentation(from: proxy.uiView, isPresented: isPresented)
                     }
             })
