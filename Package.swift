@@ -4,18 +4,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "UIKitPresentationModifier",
-    platforms: [
-        .iOS(.v14)
-    ],
-    products: [
-        .library(
-            name: "UIKitPresentationModifier",
-            targets: ["UIKitPresentationModifier"]),
-    ],
-    targets: [
-        .target(
-            name: "UIKitPresentationModifier",
-            dependencies: []),
-    ]
+	name: "UIKitPresentationModifier",
+	platforms: [
+		.iOS(.v14)
+	],
+	products: [
+		.library(
+			name: "UIKitPresentationModifier",
+			targets: ["UIKitPresentationModifier"]),
+	],
+	targets: [
+		.target(
+			name: "UIKitPresentationModifier",
+			dependencies: []),
+	]
 )

@@ -50,16 +50,16 @@ public struct BridgeView<Content>: View where Content: View {
 }
 
 extension BridgeView {
-    /// A proxy object containing an instance of a `UIView` which is injected into a `SwiftUI` hierarchy.
-    public struct Proxy {
-        public let uiView: UIView
-    }
+	/// A proxy object containing an instance of a `UIView` which is injected into a `SwiftUI` hierarchy.
+	public struct Proxy {
+		public let uiView: UIView
+	}
 }
 
 private extension BridgeView {
-    private struct _BridgeView: UIViewRepresentable {
-        let uiView: UIView = UIView()
-        func makeUIView(context: Context) -> some UIView { uiView }
-        func updateUIView(_ uiView: UIViewType, context: Context) {}
-    }
+	private struct _BridgeView: UIViewRepresentable {
+		let uiView: UIView = UIView()
+		func makeUIView(context: Context) -> some UIView { uiView }
+		func updateUIView(_ uiView: UIViewType, context: Context) {}
+	}
 }
