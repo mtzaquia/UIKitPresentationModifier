@@ -53,9 +53,9 @@ public extension View {
 	///   - content: The content to be displayed inside the bottom sheet.
 	///   - controllerProvider: A closure returning the desired controller to be presented. Use this for customising your presentation and make sure
 	///   to include the provided `content` parameter in your result.
-	func presentation<Presented>(isPresented: Binding<Bool>,
+	func presentation<Presented, Controller>(isPresented: Binding<Bool>,
 								 @ViewBuilder content: @escaping () -> Presented,
-								 controllerProvider: @escaping (Presented) -> UIViewController) -> some View where Presented: View
+								 controllerProvider: @escaping (Presented) -> Controller) -> some View where Presented: View, Controller: UIHostingController<Presented>
 	{
 		modifier(
 			UIKitPresentationModifier(isPresented: isPresented,
@@ -65,10 +65,10 @@ public extension View {
 	}
 }
 
-struct UIKitPresentationModifier<Presented>: ViewModifier where Presented: View {
+struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Presented: View, Controller: UIHostingController<Presented> {
 	init(isPresented: Binding<Bool>,
 		 content: @escaping () -> Presented,
-		 controllerProvider: @escaping (Presented) -> UIViewController)
+		 controllerProvider: @escaping (Presented) -> Controller)
 	{
 		_isPresented = isPresented
 		self.content = content
@@ -77,18 +77,16 @@ struct UIKitPresentationModifier<Presented>: ViewModifier where Presented: View 
 
 	@Binding var isPresented: Bool
 	let content: () -> Presented
-	let controllerProvider: (Presented) -> UIViewController
+	let controllerProvider: (Presented) -> Controller
 
 	@State private var presentingViewController: UIViewController?
 	@State private var observation: AnyObject?
 
 	func body(content: Content) -> some View {
 		content
-			.background(BridgeView { proxy in
-				Color.clear
-					.onChange(of: isPresented) { isPresented in
-						handlePresentation(from: proxy.uiView, isPresented: isPresented)
-					}
+			.background(BridgeView { proxy -> SwiftUI.Color in
+                		handlePresentation(from: proxy.uiView, isPresented: isPresented)
+				return Color.clear
 			})
 	}
 }
@@ -99,29 +97,36 @@ private extension UIKitPresentationModifier {
 	}
 
 	func present(from view: UIView) {
-		guard let presentingViewController = view.nearestViewController,
-			  presentingViewController.presentedViewController == nil
-		else {
+		guard let presentingViewController = view.nearestViewController else {
 			return
 		}
 
-		self.presentingViewController = presentingViewController
+        guard presentingViewController.presentedViewController == nil else {
+            (presentingViewController.presentedViewController as? Controller)?.rootView = content()
+            return
+        }
 
 		_ = UIViewController.swizzleViewDidDisappear
 
 		let presentedController = controllerProvider(content())
 
-		observation = NotificationCenter.default.addObserver(forName: UIViewController.didDismissNotification,
-															 object: presentedController,
-															 queue: OperationQueue.main) { _ in
-			isPresented = false
-		}
+        DispatchQueue.main.async {
+            self.presentingViewController = presentingViewController
+            observation = NotificationCenter.default.addObserver(forName: UIViewController.didDismissNotification,
+                                                                object: presentedController,
+                                                                queue: OperationQueue.main) { _ in
+                isPresented = false
+            }
+        }
 
 		presentingViewController.present(presentedController, animated: true)
 	}
 
 	func dismiss() {
-		observation = nil
+        	DispatchQueue.main.async {
+	            observation = nil
+        	}
+
 		presentingViewController?.presentedViewController?.dismiss(animated: true)
 	}
 }
