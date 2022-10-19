@@ -36,30 +36,30 @@ import SwiftUI
 /// }
 /// ```
 public struct BridgeView<Content>: View where Content: View {
-	@State private var bridgeView = _BridgeView()
-	private let content: (Proxy) -> Content
-
-	public init(content: @escaping (Proxy) -> Content) {
-		self.content = content
-	}
-
-	public var body: some View {
-		content(Proxy(uiView: bridgeView.uiView))
-			.overlay(bridgeView.opacity(0))
-	}
+    @State private var bridgeView = _BridgeView()
+    private let content: (Proxy) -> Content
+    
+    public init(content: @escaping (Proxy) -> Content) {
+        self.content = content
+    }
+    
+    public var body: some View {
+        content(Proxy(uiView: bridgeView.uiView))
+            .overlay(bridgeView.opacity(0))
+    }
 }
 
 extension BridgeView {
-	/// A proxy object containing an instance of a `UIView` which is injected into a `SwiftUI` hierarchy.
-	public struct Proxy {
-		public let uiView: UIView
-	}
+    /// A proxy object containing an instance of a `UIView` which is injected into a `SwiftUI` hierarchy.
+    public struct Proxy {
+        public let uiView: UIView
+    }
 }
 
 private extension BridgeView {
-	private struct _BridgeView: UIViewRepresentable {
-		let uiView: UIView = UIView()
-		func makeUIView(context: Context) -> some UIView { uiView }
-		func updateUIView(_ uiView: UIViewType, context: Context) {}
-	}
+    private struct _BridgeView: UIViewRepresentable {
+        let uiView: UIView = UIView()
+        func makeUIView(context: Context) -> some UIView { uiView }
+        func updateUIView(_ uiView: UIViewType, context: Context) {}
+    }
 }

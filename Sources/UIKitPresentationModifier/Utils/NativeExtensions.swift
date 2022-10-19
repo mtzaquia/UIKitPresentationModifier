@@ -25,40 +25,42 @@
 import UIKit
 
 extension UIView {
-	var nearestViewController: UIViewController? {
-		var responder: UIResponder? = self as UIResponder
-		while responder != nil {
-			if let controller = responder as? UIViewController {
-				return controller
-			}
-			
-			responder = responder?.next
-		}
-		
-		return nil
-	}
+    var nearestViewController: UIViewController? {
+        var responder: UIResponder? = self as UIResponder
+        while responder != nil {
+            if let controller = responder as? UIViewController {
+                return controller
+            }
+
+            responder = responder?.next
+        }
+
+        return nil
+    }
 }
 
 extension UIViewController {
-	static let didDismissNotification = Notification.Name(rawValue: "pm_didDismissNotification")
-	
-	@objc dynamic func pm_viewDidDisappear(_ animated: Bool) {
-		pm_viewDidDisappear(animated)
-		if isBeingDismissed {
-			NotificationCenter.default.post(name: UIViewController.didDismissNotification,
-											object: self)
-		}
-	}
-	
-	static let swizzleViewDidDisappear: Void = {
-		let original = #selector(UIViewController.viewDidDisappear(_:))
-		let swizzled = #selector(UIViewController.pm_viewDidDisappear(_:))
-		guard let originalMethod = class_getInstanceMethod(UIViewController.self, original),
-			  let swizzledMethod = class_getInstanceMethod(UIViewController.self, swizzled)
-		else {
-			return
-		}
-		
-		method_exchangeImplementations(originalMethod, swizzledMethod)
-	}()
+    static let didDismissNotification = Notification.Name(rawValue: "pm_didDismissNotification")
+
+    @objc dynamic func pm_viewDidDisappear(_ animated: Bool) {
+        pm_viewDidDisappear(animated)
+        if isBeingDismissed {
+            NotificationCenter.default.post(
+                name: UIViewController.didDismissNotification,
+                object: self
+            )
+        }
+    }
+
+    static let swizzleViewDidDisappear: Void = {
+        let original = #selector(UIViewController.viewDidDisappear(_:))
+        let swizzled = #selector(UIViewController.pm_viewDidDisappear(_:))
+        guard let originalMethod = class_getInstanceMethod(UIViewController.self, original),
+              let swizzledMethod = class_getInstanceMethod(UIViewController.self, swizzled)
+        else {
+            return
+        }
+
+        method_exchangeImplementations(originalMethod, swizzledMethod)
+    }()
 }
