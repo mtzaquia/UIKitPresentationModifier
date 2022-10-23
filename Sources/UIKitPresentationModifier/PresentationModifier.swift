@@ -100,7 +100,9 @@ struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Pres
 
 private extension UIKitPresentationModifier {
     func handlePresentation(from uiView: UIView, isPresented: Bool) {
-        isPresented ? present(from: uiView) : dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            isPresented ? present(from: uiView) : dismiss()
+        }
     }
 
     func present(from view: UIView) {
