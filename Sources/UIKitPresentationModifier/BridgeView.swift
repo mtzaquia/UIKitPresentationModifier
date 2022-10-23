@@ -44,7 +44,7 @@ public struct BridgeView<Content>: View where Content: View {
     }
     
     public var body: some View {
-        content(Proxy(uiView: bridgeView.uiView))
+        content(Proxy(uiViewController: bridgeView.uiViewController))
             .overlay(bridgeView.opacity(0))
     }
 }
@@ -52,14 +52,15 @@ public struct BridgeView<Content>: View where Content: View {
 extension BridgeView {
     /// A proxy object containing an instance of a `UIView` which is injected into a `SwiftUI` hierarchy.
     public struct Proxy {
-        public let uiView: UIView
+        public let uiViewController: UIViewController
+        public var uiView: UIView { uiViewController.view }
     }
 }
 
 private extension BridgeView {
-    private struct _BridgeView: UIViewRepresentable {
-        let uiView: UIView = UIView()
-        func makeUIView(context: Context) -> some UIView { uiView }
-        func updateUIView(_ uiView: UIViewType, context: Context) {}
+    private struct _BridgeView: UIViewControllerRepresentable {
+        let uiViewController: UIViewController = UIViewController()
+        func makeUIViewController(context: Context) -> some UIViewController { uiViewController }
+        func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
     }
 }

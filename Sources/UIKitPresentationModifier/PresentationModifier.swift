@@ -92,21 +92,21 @@ struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Pres
     func body(content: Content) -> some View {
         content
             .background(BridgeView { proxy -> SwiftUI.Color in
-                handlePresentation(from: proxy.uiView, isPresented: isPresented)
+                handlePresentation(from: proxy.uiViewController, isPresented: isPresented)
                 return Color.clear
             })
     }
 }
 
 private extension UIKitPresentationModifier {
-    func handlePresentation(from uiView: UIView, isPresented: Bool) {
-        DispatchQueue.main.asyncAfter(deadline: .now()) {
-            isPresented ? present(from: uiView) : dismiss()
+    func handlePresentation(from controller: UIViewController, isPresented: Bool) {
+        DispatchQueue.main.async {
+            isPresented ? present(from: controller) : dismiss(from: controller)
         }
     }
 
-    func present(from view: UIView) {
-        guard let presentingViewController = view.nearestViewController else {
+    func present(from controller: UIViewController) {
+        guard let presentingViewController = controller.parent else {
             return
         }
 
@@ -126,6 +126,7 @@ private extension UIKitPresentationModifier {
                 object: presentedController,
                 queue: OperationQueue.main
             ) { _ in
+                self.presentingViewController = nil
                 isPresented = false
             }
         }
@@ -133,11 +134,11 @@ private extension UIKitPresentationModifier {
         presentingViewController.present(presentedController, animated: true)
     }
 
-    func dismiss() {
-        DispatchQueue.main.async {
-            observation = nil
+    func dismiss(from controller: UIViewController) {
+        let presented = presentingViewController?.presentedViewController
+        observation = nil
+        presentingViewController?.presentedViewController?.dismiss(animated: true) {
+            presentingViewController = nil
         }
-
-        presentingViewController?.presentedViewController?.dismiss(animated: true)
     }
 }
