@@ -139,7 +139,7 @@ private extension UIKitPresentationModifier {
 
     func dismiss() {
         presentationState.observation = nil
-        presentationState.presentedViewController?.presentingViewController?.dismiss(animated: true) {
+        presentationState.presentedViewController?.dismiss(animated: true) {
             presentationState.presentedViewController = nil
         }
     }
