@@ -71,6 +71,11 @@ public extension View {
     }
 }
 
+final class PresentationState: ObservableObject {
+    var presentedViewController: UIViewController?
+    var observation: AnyObject?
+}
+
 struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Presented: View, Controller: UIHostingController<Presented> {
     init(
         isPresented: Binding<Bool>,
@@ -86,59 +91,56 @@ struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Pres
     let content: () -> Presented
     let controllerProvider: (Presented) -> Controller
 
-    @State private var presentingViewController: UIViewController?
-    @State private var observation: AnyObject?
+    @StateObject private var presentationState = PresentationState()
 
     func body(content: Content) -> some View {
         content
             .background(BridgeView { proxy -> SwiftUI.Color in
-                handlePresentation(from: proxy.uiViewController, isPresented: isPresented)
+                handlePresentation(from: proxy.uiView, isPresented: isPresented)
                 return Color.clear
             })
     }
 }
 
 private extension UIKitPresentationModifier {
-    func handlePresentation(from controller: UIViewController, isPresented: Bool) {
+    func handlePresentation(from view: UIView, isPresented: Bool) {
         DispatchQueue.main.async {
-            isPresented ? present(from: controller) : dismiss(from: controller)
+            isPresented ? present(from: view) : dismiss()
         }
     }
 
-    func present(from controller: UIViewController) {
-        guard let presentingViewController = controller.parent else {
+    func present(from view: UIView) {
+        guard let presentingViewController = view.nearestViewController else {
             return
         }
 
-        guard presentingViewController.presentedViewController == nil else {
-            (presentingViewController.presentedViewController as? Controller)?.rootView = content()
+        if let currentlyPresentedViewController = presentingViewController.presentedViewController as? Controller {
+            currentlyPresentedViewController.rootView = content()
             return
         }
 
         _ = UIViewController.swizzleViewDidDisappear
 
-        let presentedController = controllerProvider(content())
+        let presentedViewController = controllerProvider(content())
 
-        DispatchQueue.main.async {
-            self.presentingViewController = presentingViewController
-            observation = NotificationCenter.default.addObserver(
-                forName: UIViewController.didDismissNotification,
-                object: presentedController,
-                queue: OperationQueue.main
-            ) { _ in
-                self.presentingViewController = nil
-                isPresented = false
-            }
+        presentationState.observation = NotificationCenter.default.addObserver(
+            forName: UIViewController.didDismissNotification,
+            object: presentedViewController,
+            queue: OperationQueue.main
+        ) { _ in
+            self.presentationState.presentedViewController = nil
+            self.isPresented = false
         }
 
-        presentingViewController.present(presentedController, animated: true)
+        presentingViewController.present(presentedViewController, animated: true) {
+            presentationState.presentedViewController = presentedViewController
+        }
     }
 
-    func dismiss(from controller: UIViewController) {
-        let presented = presentingViewController?.presentedViewController
-        observation = nil
-        presentingViewController?.presentedViewController?.dismiss(animated: true) {
-            presentingViewController = nil
+    func dismiss() {
+        presentationState.observation = nil
+        presentationState.presentedViewController?.presentingViewController?.dismiss(animated: true) {
+            presentationState.presentedViewController = nil
         }
     }
 }

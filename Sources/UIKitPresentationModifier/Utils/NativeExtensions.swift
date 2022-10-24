@@ -24,6 +24,20 @@
 
 import UIKit
 
+extension UIView {
+    var nearestViewController: UIViewController? {
+        var responder: UIResponder? = self as UIResponder
+        while responder != nil {
+            if let controller = responder as? UIViewController {
+                return controller
+            }
+
+            responder = responder?.next
+        }
+
+        return nil
+    }
+}
 
 extension UIViewController {
     static let didDismissNotification = Notification.Name(rawValue: "pm_didDismissNotification")
