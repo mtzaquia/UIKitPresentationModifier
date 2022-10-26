@@ -40,6 +40,22 @@ extension UIView {
 }
 
 extension UIViewController {
+    var topmostViewController: UIViewController? {
+        if let presentedViewController = presentedViewController {
+            return presentedViewController.topmostViewController
+        }
+        
+        if let navigationController = self as? UINavigationController {
+            return navigationController.visibleViewController?.topmostViewController ?? self
+        }
+        
+        if let tabBarController = self as? UITabBarController {
+            return tabBarController.selectedViewController?.topmostViewController ?? self
+        }
+        
+        return self
+    }
+
     static let didDismissNotification = Notification.Name(rawValue: "pm_didDismissNotification")
 
     @objc dynamic func pm_viewDidDisappear(_ animated: Bool) {

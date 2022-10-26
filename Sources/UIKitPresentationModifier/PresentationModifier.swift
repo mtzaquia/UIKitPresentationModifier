@@ -110,7 +110,7 @@ private extension UIKitPresentationModifier {
     }
 
     func present(from view: UIView) {
-        guard let presentingViewController = view.nearestViewController else {
+        guard let presentingViewController = view.nearestViewController?.topmostViewController else {
             return
         }
 
