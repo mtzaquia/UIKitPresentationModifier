@@ -114,7 +114,7 @@ private extension UIKitPresentationModifier {
             return
         }
 
-        if let currentlyPresentedViewController = presentingViewController.presentedViewController as? Controller {
+        if let currentlyPresentedViewController = presentationState.presentedViewController as? Controller {
             currentlyPresentedViewController.rootView = content()
             return
         }
@@ -132,9 +132,8 @@ private extension UIKitPresentationModifier {
             self.isPresented = false
         }
 
-        presentingViewController.present(presentedViewController, animated: true) {
-            presentationState.presentedViewController = presentedViewController
-        }
+        presentationState.presentedViewController = presentedViewController
+        presentingViewController.present(presentedViewController, animated: true)
     }
 
     func dismiss() {
