@@ -26,9 +26,9 @@ import SwiftUI
 ///
 /// By conforming a custom controller with this type, you are able to create
 /// presentation controllers that do not necessarily inherit from `UIHostingController`.
-public protocol HostingControllerType<Root>: UIViewController {
+public protocol RootViewProviding<Root>: UIViewController {
     associatedtype Root: View
     var rootView: Root { get set }
 }
 
-extension UIHostingController: HostingControllerType {}
+extension UIHostingController: RootViewProviding {}

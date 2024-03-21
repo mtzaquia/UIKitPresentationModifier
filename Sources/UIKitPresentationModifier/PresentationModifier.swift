@@ -60,7 +60,7 @@ public extension View {
         isPresented: Binding<Bool>,
         @ViewBuilder content: @escaping () -> Presented,
         controllerProvider: @escaping (Presented) -> Controller
-    ) -> some View where Presented: View, Controller: HostingControllerType<Presented> {
+    ) -> some View where Presented: View, Controller: RootViewProviding<Presented> {
         modifier(
             UIKitPresentationModifier(
                 isPresented: isPresented,
@@ -76,7 +76,7 @@ final class PresentationState: ObservableObject {
     var observation: AnyObject?
 }
 
-struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Presented: View, Controller: HostingControllerType<Presented> {
+struct UIKitPresentationModifier<Presented, Controller>: ViewModifier where Presented: View, Controller: RootViewProviding<Presented> {
     init(
         isPresented: Binding<Bool>,
         content: @escaping () -> Presented,
